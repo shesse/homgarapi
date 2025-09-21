@@ -158,7 +158,7 @@ class HomgarApi:
             device = id_map.get(subdevice_status['id'])
             if device is not None:
                 device.set_device_status(subdevice_status)
-
+    
     def ensure_logged_in(self, email: str, password: str, area_code: str = "31") -> None:
         """
         Ensures this API object has valid credentials.

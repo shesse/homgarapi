@@ -1,5 +1,6 @@
 import re
 from typing import List
+import datetime
 
 STATS_VALUE_REGEX = re.compile(r'^(\d+)\((\d+)/(\d+)/(\d+)\)')
 
@@ -301,6 +302,111 @@ class RainPoint2ZoneTimer(HomgarSubDevice):
         """
         pass
 
+class RainPointMiniBoxHub(HomgarHubDevice):
+    MODEL_CODES = [289]
+    FRIENDLY_DESC = "Mini Box Hub"
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+class RainPointWaterFlowMeter(HomgarSubDevice):
+    MODEL_CODES = [80]
+    FRIENDLY_DESC = "Water Flow Meter"
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.rf_rssi = None
+        self.endOfLastUsage = None
+        self.currentDuration = None
+        self.currentUsage = None
+        self.lastUsage = None
+        self.lastDuration = None
+        self.totalUsageCurrentDay = None
+        self.totalUsage = None
+
+    def _parse_status_d_value(self, val):
+        """
+        Note that this device reports its status different from other
+        Homgar devices: it contains a hex string prefixed by '10#'.
+        Example:
+        10#E1CE00FF0B00000000DC01990000B7D9E66A16FF0700000000AF000000009F07000000FF0A02000000CB07000000B307000000
+
+        Deduced meaning explained by cutting the hex string into pieces:
+        10#             Marks this kind of encoding (?)
+        E1              ?
+        CE              rssi = -50dbm
+        00              ?
+        FF              padding?
+        0B00000000      Tag + 4 Bytes - unknown content
+        DC01990000      Tag + 4 Bytes - unknown content
+        B7D9E66A16      Tag + 4 Bytes timestamp (encoding see decodeTimestamp)
+        FF              padding?
+        0700000000      Tag + current duration (seconds)
+        AF00000000      Tag + current usage (multiples of 0.1L)
+        9F07000000      Tag + last usage (multiples of 0.1L)
+        FF              padding?
+        0A02000000      Tag + last duration (seconds)
+        CB07000000      Tag + total usage current day (multiples of 0.1L)
+        B307000000      Tag + total usage (multiples of 0.1L)
+        """
+        def decodeTimestamp(value) -> datetime:
+            sec = value & 0x3f
+            min = (value >> 6) & 0x3f
+            hour = (value >> 12) & 0x1f
+            day = (value >> 17) & 0x1f
+            month = (value >> 22) & 0xf
+            year = ((value >> 26) & 0x3f) + 2020
+
+            return datetime.datetime(year, month, day, hour, min, sec)
+
+        ten, hex = val.split('#')
+
+        bytesArray = bytes.fromhex(hex)
+
+        self.rf_rssi = -((-bytesArray[1]) & 0xff)
+
+        idx = 3
+        while idx < len(bytesArray):
+            tag = bytesArray[idx]
+            idx += 1
+            if tag == 0xff:
+                continue
+            value = 0
+            factor = 1
+            for i in range(0, 4):
+                value += factor*bytesArray[idx]
+                idx += 1
+                factor *= 256
+            match tag:
+                case 0x0b:
+                    pass # unknown
+                case 0xdc:
+                    pass # unknown
+                case 0xb7:
+                    self.endOfLastUsage = decodeTimestamp(value)
+                case 0x07:
+                    self.currentDuration = value
+                case 0xaf:
+                    self.currentUsage = value
+                case 0x9f:
+                    self.lastUsage = value
+                case 0x0a:
+                    self.lastDuration = value
+                case 0xcb:
+                    self.totalUsageCurrentDay = value
+                case 0xb3:
+                    self.totalUsage = value
+                case _:
+                    print("RainPointWaterFlowMeter: unknownTag: 0x%2.2x" % tag)
+
+    def __str__(self):
+        s = super().__str__()
+        if self.totalUsage:
+            s += f": {self.totalUsage}L"
+        return s
+
+
 
 MODEL_CODE_MAPPING = {
     code: clazz
@@ -309,6 +415,8 @@ MODEL_CODE_MAPPING = {
         RainPointSoilMoistureSensor,
         RainPointRainSensor,
         RainPointAirSensor,
-        RainPoint2ZoneTimer
+        RainPoint2ZoneTimer,
+        RainPointMiniBoxHub,
+        RainPointWaterFlowMeter
     ) for code in clazz.MODEL_CODES
 }
