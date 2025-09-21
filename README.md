@@ -21,6 +21,8 @@ Supported devices
  * RainPoint Smart+ Soil&Moisture Sensor (HCS021FRF)
  * RainPoint Smart+ High Precision Rain Sensor (HCS012ARF)
  * RainPoint Smart+ Outdoor Air Humidity Sensor (HCS014ARF)
+ * Rainpoint Mini Box Hub (HWG023WBRF)
+ * Rainpoint Water Flow Meter (HCS008FRF)
 
 How to use
 ----------
