@@ -403,7 +403,7 @@ class RainPointWaterFlowMeter(HomgarSubDevice):
     def __str__(self):
         s = super().__str__()
         if self.totalUsage:
-            s += f": {self.totalUsage}L"
+            s += f": {self.totalUsage/10}L"
         return s
 
 
