@@ -317,7 +317,7 @@ class RainPointWaterFlowMeter(HomgarSubDevice):
         super().__init__(**kwargs)
 
         self.rf_rssi = None
-        self.endOfLastUsage = None
+        self.timestamp = None
         self.currentDuration = None
         self.currentUsage = None
         self.lastUsage = None
@@ -338,8 +338,8 @@ class RainPointWaterFlowMeter(HomgarSubDevice):
         CE              rssi = -50dbm
         00              ?
         FF              padding?
-        0B00000000      Tag + 4 Bytes - unknown content
-        DC01990000      Tag + 4 Bytes - unknown content
+        0B00000000      Tag + 4 Bytes - not yet identified
+        DC01990000      Tag + 4 Bytes - not yet identified
         B7D9E66A16      Tag + 4 Bytes timestamp (encoding see decodeTimestamp)
         FF              padding?
         0700000000      Tag + current duration (seconds)
@@ -384,7 +384,7 @@ class RainPointWaterFlowMeter(HomgarSubDevice):
                 case 0xdc:
                     pass # unknown
                 case 0xb7:
-                    self.endOfLastUsage = decodeTimestamp(value)
+                    self.timestamp = decodeTimestamp(value)
                 case 0x07:
                     self.currentDuration = value
                 case 0xaf:

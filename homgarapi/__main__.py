@@ -22,8 +22,7 @@ def demo(api: HomgarApi, config):
             print(f"  - {hub}")
             api.get_device_status(hub)
             for subdevice in hub.subdevices:
-                print(f"    + {subdevice}")
-
+                print(f"    + {subdevice}", subdevice.__dict__)
 
 def main():
     argparse = ArgumentParser(
