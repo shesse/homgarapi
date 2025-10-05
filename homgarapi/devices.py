@@ -388,15 +388,15 @@ class RainPointWaterFlowMeter(HomgarSubDevice):
                 case 0x07:
                     self.currentDuration = value
                 case 0xaf:
-                    self.currentUsage = value
+                    self.currentUsage = value/10.
                 case 0x9f:
-                    self.lastUsage = value
+                    self.lastUsage = value/10.
                 case 0x0a:
                     self.lastDuration = value
                 case 0xcb:
-                    self.totalUsageCurrentDay = value
+                    self.totalUsageCurrentDay = value/10.
                 case 0xb3:
-                    self.totalUsage = value
+                    self.totalUsage = value/10.
                 case _:
                     print("RainPointWaterFlowMeter: unknownTag: 0x%2.2x" % tag)
 
